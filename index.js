@@ -34,6 +34,7 @@ let lastStateData = '';
 
 let numGlobalErr = 0;
 
+// Checks github to see if the file we need is present in a given commit or not
 async function checkCommitHasFile(commitHash) {
 	try {
 		let { data } = await octokit.repos.getCommit({
@@ -53,6 +54,7 @@ async function checkCommitHasFile(commitHash) {
 	}
 }
 
+// Gets a file from github and returns the base64 decoded file content
 async function getFileGithub(
 	commitHash,
 	filename = 'battleground-state-changes.csv'
@@ -77,6 +79,7 @@ function delay(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Parse the full csv file and return an object containing only the most recent updates
 const getMostRecentStateData = async (data) => {
 	let parsed = await neatCsv(data);
 	let visited = [];
