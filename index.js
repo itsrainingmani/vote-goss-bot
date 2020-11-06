@@ -173,7 +173,7 @@ const getMostRecentStateData = async (data) => {
 							} else if (currVoteDiff > oldVoteDiff) {
 								voteDirection = '⬆️';
 							} else if (currVoteDiff == oldVoteDiff) {
-								voteDirection = '-';
+								voteDirection = '';
 							}
 
 							diffObj.push(
@@ -185,12 +185,17 @@ const getMostRecentStateData = async (data) => {
 					let messageToSend = diffObj.join('\n\n');
 
 					for (let recipient of recipients) {
-						let msg = await twClient.messages.create({
-							body: `Hey ${recipient.name}. There was an update\n\n${messageToSend}`,
-							from: config.twilioPhone,
-							to: recipient.num,
-						});
-						console.log(`Message sent to ${recipient.name}`);
+						try {
+							let msg = await twClient.messages.create({
+								body: `Hey ${recipient.name}. There was an update\n\n${messageToSend}`,
+								from: config.twilioPhone,
+								to: recipient.num,
+							});
+							console.log(`Message sent to ${recipient.name}`);
+						} catch (err) {
+							console.log(`SMS Error: ${err}`);
+							continue;
+						}
 					}
 				} else {
 					console.log('\nNo new data was added');
