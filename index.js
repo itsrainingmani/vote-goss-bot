@@ -101,6 +101,7 @@ const getMostRecentStateData = async (data) => {
 		console.log(`\nExecuting at ${new Date().toString()}`);
 
 		try {
+			// Get a list of commits from the repo
 			let { data } = await octokit.repos.listCommits({
 				owner: 'alex',
 				repo: 'nyt-2020-election-scraper',
@@ -109,15 +110,18 @@ const getMostRecentStateData = async (data) => {
 			let commitHashes = [];
 
 			for (let { sha, commit } of data) {
+				// Do not go beyond the current commit
 				if (sha === latestCommitHash) {
 					break;
 				}
 
+				// Make sure that the commit message meets our requirement
 				if (commit.message.includes(commitMsgToLookFor)) {
 					commitHashes.push(sha);
 				}
 			}
 
+			// If there is no commit that has any new data, move on
 			if (commitHashes.length === 0 || commitHashes[0] === latestCommitHash) {
 				console.log('No new commits for State Data');
 			} else {
@@ -125,18 +129,23 @@ const getMostRecentStateData = async (data) => {
 					`Setting the new Commit Hash from ${latestCommitHash} to ${commitHashes[0]}`
 				);
 
+				// Update our commit hash with the most recent commit that matches from the repo
 				latestCommitHash = commitHashes[0];
 
 				let isNewData = await checkCommitHasFile(latestCommitHash);
 				if (isNewData) {
+					// If this commit has data (The commit message can match but the requieite data file may not exist), get it from Github and parse it as CSV
 					console.log('There is new data!');
 					let updatedData = await getFileGithub(latestCommitHash);
 					let parsedData = await getMostRecentStateData(updatedData);
 
 					let diffObj = [];
 
+					// First time running the program
+					console.log(parsedData);
+					let voteDirection = '';
+
 					if (lastStateData === '') {
-						console.log(parsedData);
 						lastStateData = parsedData;
 						for (let k of Object.keys(parsedData)) {
 							diffObj.push(
@@ -144,17 +153,19 @@ const getMostRecentStateData = async (data) => {
 							);
 						}
 					} else {
-						console.log(parsedData);
 						for (let k of Object.keys(parsedData)) {
-							let l1 = parsedData[k];
-							let l2 = lastStateData[k];
+							let currVoteData = parsedData[k];
+							let oldVoteData = lastStateData[k];
 
-							if (l1.timestamp != l2.timestamp) {
-								let o = l1.timestamp > l2.timestamp ? l1 : l2;
-								diffObj.push(
-									`${k} now has a margin of ${o.vote_diff} with ${o.votes_left} votes left`
-								);
+							if (currVoteData.vote_diff < oldVoteData.vote_diff) {
+								voteDirection = '⬇️';
+							} else if (currVoteData.vote_diff > oldVoteData.vote_diff) {
+								voteDirection = '⬆️';
 							}
+
+							diffObj.push(
+								`${k}${voteDirection} now has a margin of ${currVoteData.vote_diff} with ${currVoteData.votes_left} votes left`
+							);
 						}
 					}
 
@@ -166,6 +177,7 @@ const getMostRecentStateData = async (data) => {
 							from: config.twilioPhone,
 							to: recipient.num,
 						});
+						console.log(`Message sent to ${recipient.name}`);
 					}
 				} else {
 					console.log('\nNo new data was added');
