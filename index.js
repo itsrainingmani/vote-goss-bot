@@ -28,14 +28,11 @@ const twClient = require('twilio')(
   process.env.TW_AUTH_TOKEN
 );
 
-// let statesToWatch = config.statesToCheck;
 let latestCommitHash = config.currentCommitHash;
 let recipients = config.peopleToSend;
 let lastStateData = '';
 
 let numGlobalErr = 0;
-
-let statesToIgnore = ['Alaska (EV: 3)', 'North Carolina (EV: 15)'];
 
 // Checks github to see if the file we need is present in a given commit or not
 async function checkCommitHasFile(commitHash) {
@@ -83,7 +80,7 @@ function delay(ms) {
 }
 
 // Parse the full csv file and return an object containing only the most recent updates
-const getMostRecentStateData = async (data) => {
+const getMostRecentStateData = async (data, statesToIgnore) => {
   let parsed = await neatCsv(data);
   let visited = [];
   let latest = {};
@@ -110,8 +107,10 @@ const getMostRecentStateData = async (data) => {
     try {
       let currConfig = await fs.readFile('config.json', 'utf-8');
       let recipients = JSON.parse(currConfig).peopleToSend;
+      let statesToIgnore = JSON.parse(currConfig).statesToIgnore;
 
-      console.log(Array.from(recipients, (x) => x.name));
+      console.log(`Recipients: ${Array.from(recipients, (x) => x.name)}`);
+      console.log(`Ignoring ${statesToIgnore}`);
 
       // Get a list of commits from the repo
       let { data } = await octokit.repos.listCommits({
@@ -149,7 +148,10 @@ const getMostRecentStateData = async (data) => {
           // If this commit has data (The commit message can match but the requieite data file may not exist), get it from Github and parse it as CSV
           console.log('There is new data!');
           let updatedData = await getFileGithub(latestCommitHash);
-          let parsedData = await getMostRecentStateData(updatedData);
+          let parsedData = await getMostRecentStateData(
+            updatedData,
+            statesToIgnore
+          );
 
           let diffObj = [];
 
