@@ -9,7 +9,10 @@
   "author": "Manikandan Sundararajan",
   "license": "MIT",
   "dependencies": {
-    "@octokit/rest": "^18.0.9"
+    "@octokit/rest": "^18.0.9",
+    "dotenv": "^8.2.0",
+    "neat-csv": "^5.2.0",
+    "twilio": "^3.51.0"
   },
   "devDependencies": {
     "prettier": "^2.1.2"
