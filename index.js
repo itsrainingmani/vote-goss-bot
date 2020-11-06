@@ -163,7 +163,7 @@ const getMostRecentStateData = async (data) => {
 							let currVoteData = parsedData[k];
 							let oldVoteData = lastStateData[k];
 
-							let magnitude = currentVoteData.in_lead === 'Biden' ? '+' : '-';
+							let magnitude = currVoteData.in_lead === 'Biden' ? '+' : '-';
 
 							let currVoteDiff = parseInt(currVoteData.vote_diff);
 							let oldVoteDiff = parseInt(oldVoteData.vote_diff);
