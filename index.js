@@ -149,12 +149,11 @@ const getMostRecentStateData = async (data) => {
 					console.log(parsedData);
 
 					if (lastStateData === '') {
-						lastStateData = parsedData;
 						for (let k of Object.keys(parsedData)) {
 							let currVoteDiff = parsedData[k];
 							let magnitude = currVoteDiff.in_lead === 'Biden' ? '+' : '-';
 							diffObj.push(
-								`${k} now has a margin of ${magnitude}${currVoteDiff.vote_diff} with ${currVoteDiff.votes_left} votes left`
+								`${k} has a ${magnitude}${currVoteDiff.vote_diff} margin with ${currVoteDiff.votes_left} votes left`
 							);
 						}
 					} else {
@@ -177,10 +176,12 @@ const getMostRecentStateData = async (data) => {
 							}
 
 							diffObj.push(
-								`${k}${voteDirection} now has a margin of ${magnitude}${currVoteData.vote_diff} with ${currVoteData.votes_left} votes left`
+								`${k}${voteDirection} has a ${magnitude}${currVoteData.vote_diff} margin with ${currVoteData.votes_left} votes left`
 							);
 						}
 					}
+
+					lastStateData = parsedData;
 
 					let messageToSend = diffObj.join('\n\n');
 
