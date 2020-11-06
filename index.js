@@ -1,5 +1,6 @@
 const { Octokit } = require('@octokit/rest');
 const neatCsv = require('neat-csv');
+const fs = require('fs').promises;
 const config = require('./config.json');
 require('dotenv').config();
 
@@ -33,6 +34,8 @@ let recipients = config.peopleToSend;
 let lastStateData = '';
 
 let numGlobalErr = 0;
+
+let statesToIgnore = ['Alaska (EV: 3)', 'North Carolina (EV: 15)'];
 
 // Checks github to see if the file we need is present in a given commit or not
 async function checkCommitHasFile(commitHash) {
@@ -86,7 +89,7 @@ const getMostRecentStateData = async (data) => {
   let latest = {};
 
   for (let r of parsed) {
-    if (!visited.includes(r.state)) {
+    if (!visited.includes(r.state) && !statesToIgnore.includes(r.state)) {
       visited.push(r.state);
       latest[r.state] = {
         vote_diff: r.vote_differential,
@@ -105,6 +108,11 @@ const getMostRecentStateData = async (data) => {
     console.log(`\nExecuting at ${new Date().toString()}`);
 
     try {
+      let currConfig = await fs.readFile('config.json', 'utf-8');
+      let recipients = JSON.parse(currConfig).peopleToSend;
+
+      console.log(recipients);
+
       // Get a list of commits from the repo
       let { data } = await octokit.repos.listCommits({
         owner: 'alex',
@@ -152,8 +160,18 @@ const getMostRecentStateData = async (data) => {
             for (let k of Object.keys(parsedData)) {
               let currVoteDiff = parsedData[k];
               let magnitude = currVoteDiff.in_lead === 'Biden' ? '+' : '-';
+
+              let voteDiffFormatted = currVoteDiff.vote_diff.replace(
+                /\B(?=(\d{3})+(?!\d))/g,
+                ','
+              );
+              let voteLeftFormatted = currVoteDiff.votes_left.replace(
+                /\B(?=(\d{3})+(?!\d))/g,
+                ','
+              );
+
               diffObj.push(
-                `${k} has a ${magnitude}${currVoteDiff.vote_diff} margin with ${currVoteDiff.votes_left} votes left`
+                `${k} has a ${magnitude}${voteDiffFormatted} margin with ${voteLeftFormatted} votes left`
               );
             }
           } else {
@@ -175,8 +193,17 @@ const getMostRecentStateData = async (data) => {
                 voteDirection = '';
               }
 
+              let voteDiffFormatted = currVoteData.vote_diff.replace(
+                /\B(?=(\d{3})+(?!\d))/g,
+                ','
+              );
+              let voteLeftFormatted = currVoteData.votes_left.replace(
+                /\B(?=(\d{3})+(?!\d))/g,
+                ','
+              );
+
               diffObj.push(
-                `${k}${voteDirection} has a ${magnitude}${currVoteData.vote_diff} margin with ${currVoteData.votes_left} votes left`
+                `${k}${voteDirection} has a ${magnitude}${voteDiffFormatted} margin with ${voteLeftFormatted} votes left`
               );
             }
           }
