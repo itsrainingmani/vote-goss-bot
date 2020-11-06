@@ -92,7 +92,7 @@ const getMostRecentStateData = async (data) => {
 				vote_diff: r.vote_differential,
 				votes_left: r.votes_remaining,
 				timestamp: r.timestamp,
-				in_lead: r.leading_candidate,
+				in_lead: r.leading_candidate_name,
 			};
 		}
 	}
