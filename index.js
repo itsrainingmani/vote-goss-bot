@@ -111,7 +111,7 @@ const getMostRecentStateData = async (data) => {
       let currConfig = await fs.readFile('config.json', 'utf-8');
       let recipients = JSON.parse(currConfig).peopleToSend;
 
-      console.log(recipients);
+      console.log(Array.from(recipients, (x) => x.name));
 
       // Get a list of commits from the repo
       let { data } = await octokit.repos.listCommits({
