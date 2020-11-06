@@ -215,7 +215,7 @@ const getMostRecentStateData = async (data) => {
           for (let recipient of recipients) {
             try {
               let msg = await twClient.messages.create({
-                body: `Hey ${recipient.name}. There was an update\n\n${messageToSend}`,
+                body: `Hey ${recipient.name}, \n\n${messageToSend}`,
                 from: config.twilioPhone,
                 to: recipient.num,
               });
