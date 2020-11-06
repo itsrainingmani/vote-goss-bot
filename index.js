@@ -27,7 +27,7 @@ const twClient = require('twilio')(
 	process.env.TW_AUTH_TOKEN
 );
 
-let statesToWatch = config.statesToCheck;
+// let statesToWatch = config.statesToCheck;
 let latestCommitHash = config.currentCommitHash;
 let recipients = config.peopleToSend;
 let lastStateData = '';
@@ -92,6 +92,7 @@ const getMostRecentStateData = async (data) => {
 				vote_diff: r.vote_differential,
 				votes_left: r.votes_remaining,
 				timestamp: r.timestamp,
+				in_lead: r.leading_candidate,
 			};
 		}
 	}
@@ -146,28 +147,37 @@ const getMostRecentStateData = async (data) => {
 
 					// First time running the program
 					console.log(parsedData);
-					let voteDirection = '';
 
 					if (lastStateData === '') {
 						lastStateData = parsedData;
 						for (let k of Object.keys(parsedData)) {
+							let currVoteDiff = parsedData[k];
+							let magnitude = currVoteDiff.in_lead === 'Biden' ? '+' : '-';
 							diffObj.push(
-								`${k} now has a margin of ${parsedData[k].vote_diff} with ${parsedData[k].votes_left} votes left`
+								`${k} now has a margin of ${magnitude}${currVoteDiff.vote_diff} with ${currVoteDiff.votes_left} votes left`
 							);
 						}
 					} else {
 						for (let k of Object.keys(parsedData)) {
+							let voteDirection = '';
 							let currVoteData = parsedData[k];
 							let oldVoteData = lastStateData[k];
 
-							if (currVoteData.vote_diff < oldVoteData.vote_diff) {
+							let magnitude = currentVoteData.in_lead === 'Biden' ? '+' : '-';
+
+							let currVoteDiff = parseInt(currVoteData.vote_diff);
+							let oldVoteDiff = parseInt(oldVoteData.vote_diff);
+
+							if (currVoteDiff < oldVoteDiff) {
 								voteDirection = '⬇️';
-							} else if (currVoteData.vote_diff > oldVoteData.vote_diff) {
+							} else if (currVoteDiff > oldVoteDiff) {
 								voteDirection = '⬆️';
+							} else if (currVoteDiff == oldVoteDiff) {
+								voteDirection = '-';
 							}
 
 							diffObj.push(
-								`${k}${voteDirection} now has a margin of ${currVoteData.vote_diff} with ${currVoteData.votes_left} votes left`
+								`${k}${voteDirection} now has a margin of ${magnitude}${currVoteData.vote_diff} with ${currVoteData.votes_left} votes left`
 							);
 						}
 					}
