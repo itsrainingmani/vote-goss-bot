@@ -1,0 +1,17 @@
+{
+  "name": "election-notifier",
+  "version": "1.0.0",
+  "description": "SMS Notifier app for Election data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Manikandan Sundararajan",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^18.0.9"
+  },
+  "devDependencies": {
+    "prettier": "^2.1.2"
+  }
+}
