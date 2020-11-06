@@ -4,19 +4,19 @@ const fs = require('fs').promises;
 
 require('dotenv').config();
 const twClient = require('twilio')(
-	process.env.TW_ACC_SID,
-	process.env.TW_AUTH_TOKEN
+  process.env.TW_ACC_SID,
+  process.env.TW_AUTH_TOKEN
 );
 
 (async () => {
-	// const data = await fs.readFile('battleground-state-changes.csv', 'utf-8');
-	// await getMostRecentStateData(data);
-	let msg = await twClient.messages.create({
-		body: 'This is the ship that made the kessel run',
-		from: '+10001110000',
-		to: '+11234567890',
-	});
-	console.log(msg);
+  // const data = await fs.readFile('battleground-state-changes.csv', 'utf-8');
+  // await getMostRecentStateData(data);
+  let msg = await twClient.messages.create({
+    body: 'This is the ship that made the kessel run',
+    from: '+10001110000',
+    to: '+11234567890',
+  });
+  console.log(msg);
 })();
 
 // const getMostRecentStateData = async (data) => {
