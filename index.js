@@ -130,116 +130,123 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
 
         // Make sure that the commit message meets our requirement
         if (commit.message.includes(commitMsgToLookFor)) {
-          commitHashes.push(sha);
+          // Check if the commit has the required data file and only push to the array if it does
+          let isDataCommit = await checkCommitHasFile(sha);
+          if (isDataCommit) {
+            commitHashes.push(sha);
+          }
         }
       }
 
       // If there is no commit that has any new data, move on
       if (commitHashes.length === 0 || commitHashes[0] === latestCommitHash) {
-        console.log('No new commits for State Data');
+        console.log('No New Commits for State Data');
       } else {
         console.log(
-          `Setting the new Commit Hash from ${latestCommitHash} to ${commitHashes[0]}`
+          `Setting the new Commit Hash from ${latestCommitHash.slice(
+            0,
+            6
+          )} to ${commitHashes[0].slice(0, 6)}`
         );
 
         // Update our commit hash with the most recent commit that matches from the repo
         latestCommitHash = commitHashes[0];
 
-        let isNewData = await checkCommitHasFile(latestCommitHash);
-        if (isNewData) {
-          // If this commit has data (The commit message can match but the requieite data file may not exist), get it from Github and parse it as CSV
-          console.log('There is new data!');
-          let updatedData = await getFileGithub(latestCommitHash);
-          let parsedData = await getMostRecentStateData(
-            updatedData,
-            statesToIgnore
-          );
+        console.log('There is new data!');
+        let updatedData = await getFileGithub(latestCommitHash);
+        let parsedData = await getMostRecentStateData(
+          updatedData,
+          statesToIgnore
+        );
 
-          let diffObj = [];
+        let stateTxtMsgs = [];
+        console.log(parsedData);
 
-          // First time running the program
-          console.log(parsedData);
+        // First time running the program
+        if (lastStateData === '') {
+          for (let k of Object.keys(parsedData)) {
+            let currVoteDiff = parsedData[k];
+            let magnitude = currVoteDiff.in_lead === 'Biden' ? '+' : '-';
 
-          if (lastStateData === '') {
-            for (let k of Object.keys(parsedData)) {
-              let currVoteDiff = parsedData[k];
-              let magnitude = currVoteDiff.in_lead === 'Biden' ? '+' : '-';
+            let voteDiffFormatted = currVoteDiff.vote_diff.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ','
+            );
+            let voteLeftFormatted = currVoteDiff.votes_left.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ','
+            );
 
-              let voteDiffFormatted = currVoteDiff.vote_diff.replace(
-                /\B(?=(\d{3})+(?!\d))/g,
-                ','
-              );
-              let voteLeftFormatted = currVoteDiff.votes_left.replace(
-                /\B(?=(\d{3})+(?!\d))/g,
-                ','
-              );
-
-              if (parseInt(currVoteDiff.votes_left) < 0) {
-                voteLeftFormatted = '~';
-              }
-
-              diffObj.push(
-                `${k} has a ${magnitude}${voteDiffFormatted} margin with ${voteLeftFormatted} votes left`
-              );
+            if (parseInt(currVoteDiff.votes_left) < 0) {
+              voteLeftFormatted = '~';
             }
-          } else {
-            for (let k of Object.keys(parsedData)) {
-              let voteDirection = '';
-              let currVoteData = parsedData[k];
-              let oldVoteData = lastStateData[k];
 
-              let magnitude = currVoteData.in_lead === 'Biden' ? '+' : '-';
-
-              let currVoteDiff = parseInt(currVoteData.vote_diff);
-              let oldVoteDiff = parseInt(oldVoteData.vote_diff);
-
-              if (currVoteDiff < oldVoteDiff) {
-                voteDirection = '⬇️';
-              } else if (currVoteDiff > oldVoteDiff) {
-                voteDirection = '⬆️';
-              } else if (currVoteDiff == oldVoteDiff) {
-                voteDirection = '';
-              }
-
-              let voteDiffFormatted = currVoteData.vote_diff.replace(
-                /\B(?=(\d{3})+(?!\d))/g,
-                ','
-              );
-              let voteLeftFormatted = currVoteData.votes_left.replace(
-                /\B(?=(\d{3})+(?!\d))/g,
-                ','
-              );
-
-              if (parseInt(currVoteData.votes_left) < 0) {
-                voteLeftFormatted = '~';
-              }
-
-              diffObj.push(
-                `${k}${voteDirection} has a ${magnitude}${voteDiffFormatted} margin with ${voteLeftFormatted} votes left`
-              );
-            }
-          }
-
-          lastStateData = parsedData;
-
-          let messageToSend = diffObj.join('\n\n');
-
-          for (let recipient of recipients) {
-            try {
-              let msg = await twClient.messages.create({
-                body: `Hey ${recipient.name}, \n\n${messageToSend}`,
-                from: config.twilioPhone,
-                to: recipient.num,
-              });
-              console.log(`Message sent to ${recipient.name}`);
-            } catch (err) {
-              console.log(`SMS Error: ${err}`);
-              continue;
-            }
+            stateTxtMsgs.push(
+              `${k} has a ${magnitude}${voteDiffFormatted} margin with ${voteLeftFormatted} votes left`
+            );
           }
         } else {
-          console.log('\nNo New Data was added');
+          for (let k of Object.keys(parsedData)) {
+            let voteDirection = '';
+            let currVoteData = parsedData[k];
+            let oldVoteData = lastStateData[k];
+
+            let magnitude = currVoteData.in_lead === 'Biden' ? '+' : '-';
+
+            let currVoteDiff = parseInt(currVoteData.vote_diff);
+            let oldVoteDiff = parseInt(oldVoteData.vote_diff);
+
+            if (currVoteDiff < oldVoteDiff) {
+              voteDirection = '⬇️';
+            } else if (currVoteDiff > oldVoteDiff) {
+              voteDirection = '⬆️';
+            } else if (currVoteDiff == oldVoteDiff) {
+              voteDirection = '';
+            }
+
+            let voteDiffFormatted = currVoteData.vote_diff.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ','
+            );
+            let voteLeftFormatted = currVoteData.votes_left.replace(
+              /\B(?=(\d{3})+(?!\d))/g,
+              ','
+            );
+
+            if (parseInt(currVoteData.votes_left) < 0) {
+              voteLeftFormatted = '~';
+            }
+
+            stateTxtMsgs.push(
+              `${k}${voteDirection} has a ${magnitude}${voteDiffFormatted} margin with ${voteLeftFormatted} votes left`
+            );
+          }
         }
+
+        lastStateData = parsedData;
+
+        let messageToSend = stateTxtMsgs.join('\n\n');
+
+        for (let recipient of recipients) {
+          try {
+            let msg = await twClient.messages.create({
+              body: `Hey ${recipient.name}, \n\n${messageToSend}`,
+              from: config.twilioPhone,
+              to: recipient.num,
+            });
+            console.log(`Message sent to ${recipient.name}`);
+          } catch (err) {
+            console.log(`SMS Error: ${err}`);
+            continue;
+          }
+        }
+
+        // let isNewData = await checkCommitHasFile(latestCommitHash);
+        // if (isNewData) {
+        //   // If this commit has data (The commit message can match but the requieite data file may not exist), get it from Github and parse it as CSV
+        // } else {
+        //   console.log('\nNo New Data was added');
+        // }
       }
 
       await delay(timeToWait);
