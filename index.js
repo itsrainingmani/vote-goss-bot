@@ -29,30 +29,9 @@ const twClient = require('twilio')(
 );
 
 let latestCommitHash = config.currentCommitHash;
-let recipients = config.peopleToSend;
 let lastStateData = '';
 
 let numGlobalErr = 0;
-
-// Checks github to see if the file we need is present in a given commit or not
-async function checkCommitHasFile(commitHash) {
-  try {
-    let { data } = await octokit.repos.getCommit({
-      owner: 'alex',
-      repo: 'nyt-2020-election-scraper',
-      ref: commitHash,
-    });
-
-    let files_changed = [];
-    data.files.forEach((v, i) => {
-      files_changed.push(v.filename);
-    });
-
-    return files_changed.includes('battleground-state-changes.csv');
-  } catch (err) {
-    throw new Error(err);
-  }
-}
 
 // Gets a file from github and returns the base64 decoded file content
 async function getFileGithub(
