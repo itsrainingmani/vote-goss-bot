@@ -109,6 +109,7 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
       let currConfig = JSON.parse(configFile);
       let recipients = currConfig.peopleToSend;
       let statesToIgnore = currConfig.statesToIgnore;
+      let timeToWait = currConfig.timeToWait;
 
       console.log(`Recipients: ${Array.from(recipients, (x) => x.name)}`);
       console.log(`Ignoring ${statesToIgnore}`);
@@ -240,6 +241,8 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
           console.log('\nNo New Data was added');
         }
       }
+
+      await delay(timeToWait);
     } catch (err) {
       console.warn(`Weee Woooo: Error ${err}`);
 
@@ -250,8 +253,6 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
         process.exit();
       }
     }
-
-    await delay(3_600_000);
   }
 })();
 
