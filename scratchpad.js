@@ -2,6 +2,8 @@ const neatCsv = require('neat-csv');
 const { parse } = require('path');
 const fs = require('fs').promises;
 
+const config = require('./config.json');
+
 require('dotenv').config();
 const twClient = require('twilio')(
   process.env.TW_ACC_SID,
@@ -11,12 +13,27 @@ const twClient = require('twilio')(
 (async () => {
   // const data = await fs.readFile('battleground-state-changes.csv', 'utf-8');
   // await getMostRecentStateData(data);
-  let msg = await twClient.messages.create({
-    body: 'This is the ship that made the kessel run',
-    from: '+10001110000',
-    to: '+11234567890',
-  });
-  console.log(msg);
+
+  for (let recipient of config.peopleToSend) {
+    try {
+      let msg = await twClient.messages.create({
+        body: `Hey ${recipient.name}, \n\nService Update: The Bot will be reducing update frequency for the next few hours`,
+        from: config.twilioPhone,
+        to: recipient.num,
+      });
+      console.log(`Message sent to ${recipient.name}`);
+    } catch (err) {
+      console.log(`SMS Error: ${err}`);
+      continue;
+    }
+  }
+
+  // let msg = await twClient.messages.create({
+  //   body: 'This is the ship that made the kessel run',
+  //   from: '+10001110000',
+  //   to: '+11234567890',
+  // });
+  // console.log(msg);
 })();
 
 // const getMostRecentStateData = async (data) => {
