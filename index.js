@@ -118,29 +118,13 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
       console.log(`Recipients: ${Array.from(recipients, (x) => x.name)}`);
       console.log(`Ignoring ${statesToIgnore}`);
 
-      // Get a list of commits from the repo
+      // Get a list of commits from the repo for the csv file path
       let { data } = await octokit.repos.listCommits({
         owner: 'alex',
         repo: 'nyt-2020-election-scraper',
+        path: 'battleground-state-changes.csv',
       });
-      let commitMsgToLookFor = 'Regenerate battleground-state-changes.txt/html';
-      let commitHashes = [];
-
-      for (let { sha, commit } of data) {
-        // Do not go beyond the current commit
-        if (sha === latestCommitHash) {
-          break;
-        }
-
-        // Make sure that the commit message meets our requirement
-        if (commit.message.includes(commitMsgToLookFor)) {
-          // Check if the commit has the required data file and only push to the array if it does
-          let isDataCommit = await checkCommitHasFile(sha);
-          if (isDataCommit) {
-            commitHashes.push(sha);
-          }
-        }
-      }
+      let commitHashes = data.map((x) => x.sha);
 
       // If there is no commit that has any new data, move on
       if (commitHashes.length === 0 || commitHashes[0] === latestCommitHash) {
@@ -220,6 +204,7 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
 
         let messageToSend = stateTxtMsgs.join('\n\n');
 
+        // Loop through list of people and send the parsed data to them
         for (let recipient of recipients) {
           try {
             let msg = await twClient.messages.create({
@@ -233,13 +218,6 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
             continue;
           }
         }
-
-        // let isNewData = await checkCommitHasFile(latestCommitHash);
-        // if (isNewData) {
-        //   // If this commit has data (The commit message can match but the requieite data file may not exist), get it from Github and parse it as CSV
-        // } else {
-        //   console.log('\nNo New Data was added');
-        // }
       }
 
       await delay(timeToWait);
@@ -255,9 +233,3 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
     }
   }
 })();
-
-// (async () => {
-// 	let d = await getFileGithub(latestCommitHash);
-// 	let b = Buffer.from(d, 'base64').toString();
-// 	console.log(b);
-// })();
