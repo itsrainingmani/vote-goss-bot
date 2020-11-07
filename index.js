@@ -40,7 +40,7 @@ async function checkCommitHasFile(commitHash) {
     let { data } = await octokit.repos.getCommit({
       owner: 'alex',
       repo: 'nyt-2020-election-scraper',
-      ref: latestCommitHash,
+      ref: commitHash,
     });
 
     let files_changed = [];
@@ -64,7 +64,7 @@ async function getFileGithub(
       owner: 'alex',
       repo: 'nyt-2020-election-scraper',
       path: filename,
-      ref: latestCommitHash,
+      ref: commitHash,
     });
 
     let b64DecodedContent = Buffer.from(data.content, 'base64').toString();
@@ -149,8 +149,8 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
         console.log(
           `Setting the new Commit Hash from ${latestCommitHash.slice(
             0,
-            6
-          )} to ${commitHashes[0].slice(0, 6)}`
+            9
+          )} to ${commitHashes[0].slice(0, 9)}`
         );
 
         // Update our commit hash with the most recent commit that matches from the repo
