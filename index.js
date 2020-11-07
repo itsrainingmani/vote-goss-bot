@@ -172,6 +172,10 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
                 ','
               );
 
+              if (parseInt(currVoteDiff.votes_left) < 0) {
+                voteLeftFormatted = '~';
+              }
+
               diffObj.push(
                 `${k} has a ${magnitude}${voteDiffFormatted} margin with ${voteLeftFormatted} votes left`
               );
@@ -204,6 +208,10 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
                 ','
               );
 
+              if (parseInt(currVoteDiff.votes_left) < 0) {
+                voteLeftFormatted = '~';
+              }
+
               diffObj.push(
                 `${k}${voteDirection} has a ${magnitude}${voteDiffFormatted} margin with ${voteLeftFormatted} votes left`
               );
@@ -228,7 +236,7 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
             }
           }
         } else {
-          console.log('\nNo new data was added');
+          console.log('\nNo New Data was added');
         }
       }
     } catch (err) {
@@ -242,7 +250,7 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
       }
     }
 
-    await delay(60_000);
+    await delay(30_000);
   }
 })();
 
