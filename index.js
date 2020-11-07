@@ -105,9 +105,10 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
     console.log(`\nExecuting at ${new Date().toString()}`);
 
     try {
-      let currConfig = await fs.readFile('config.json', 'utf-8');
-      let recipients = JSON.parse(currConfig).peopleToSend;
-      let statesToIgnore = JSON.parse(currConfig).statesToIgnore;
+      let configFile = await fs.readFile('config.json', 'utf-8');
+      let currConfig = JSON.parse(configFile);
+      let recipients = currConfig.peopleToSend;
+      let statesToIgnore = currConfig.statesToIgnore;
 
       console.log(`Recipients: ${Array.from(recipients, (x) => x.name)}`);
       console.log(`Ignoring ${statesToIgnore}`);
@@ -208,7 +209,7 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
                 ','
               );
 
-              if (parseInt(currVoteDiff.votes_left) < 0) {
+              if (parseInt(currVoteData.votes_left) < 0) {
                 voteLeftFormatted = '~';
               }
 
@@ -250,7 +251,7 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
       }
     }
 
-    await delay(30_000);
+    await delay(3_600_000);
   }
 })();
 
