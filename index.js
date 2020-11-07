@@ -79,6 +79,10 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function addCommas(rawNumber) {
+  return rawNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 // Parse the full csv file and return an object containing only the most recent updates
 const getMostRecentStateData = async (data, statesToIgnore) => {
   let parsed = await neatCsv(data);
@@ -168,14 +172,8 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
             let currVoteDiff = parsedData[k];
             let magnitude = currVoteDiff.in_lead === 'Biden' ? '+' : '-';
 
-            let voteDiffFormatted = currVoteDiff.vote_diff.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ','
-            );
-            let voteLeftFormatted = currVoteDiff.votes_left.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ','
-            );
+            let voteDiffFormatted = addCommas(currVoteDiff.vote_diff);
+            let voteLeftFormatted = addCommas(currVoteDiff.votes_left);
 
             if (parseInt(currVoteDiff.votes_left) < 0) {
               voteLeftFormatted = '~';
@@ -196,6 +194,7 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
             let currVoteDiff = parseInt(currVoteData.vote_diff);
             let oldVoteDiff = parseInt(oldVoteData.vote_diff);
 
+            // Gives visual indication of direction of change in margin
             if (currVoteDiff < oldVoteDiff) {
               voteDirection = '⬇️';
             } else if (currVoteDiff > oldVoteDiff) {
@@ -204,14 +203,8 @@ const getMostRecentStateData = async (data, statesToIgnore) => {
               voteDirection = '';
             }
 
-            let voteDiffFormatted = currVoteData.vote_diff.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ','
-            );
-            let voteLeftFormatted = currVoteData.votes_left.replace(
-              /\B(?=(\d{3})+(?!\d))/g,
-              ','
-            );
+            let voteDiffFormatted = addCommas(currVoteData.vote_diff);
+            let voteLeftFormatted = addCommas(currVoteData.votes_left);
 
             if (parseInt(currVoteData.votes_left) < 0) {
               voteLeftFormatted = '~';
